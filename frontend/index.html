@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horno PID - Control de Recetas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #e85d04;
+            --primary-dark: #d00000;
+        }
+
+        body {
+            background: linear-gradient(160deg, #fff8f5 0%, #f1f3f5 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .navbar-custom {
+            background: linear-gradient(90deg, #e85d04, #d00000);
+            box-shadow: 0 4px 15px rgba(232, 93, 4, 0.3);
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .panel-habilitadas {
+            background: linear-gradient(135deg, #fff5f0 0%, #ffffff 100%);
+            border: 2px solid #e85d04;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel-habilitadas::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 6px; height: 100%;
+            background: linear-gradient(to bottom, #e85d04, #d00000);
+        }
+
+        .badge-habilitada {
+            background: #198754;
+            font-size: 0.75rem;
+            padding: 0.4em 0.8em;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(90deg, #e85d04, #d00000);
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-primary-custom:hover {
+            background: linear-gradient(90deg, #d00000, #9d0208);
+        }
+
+        .form-control:focus {
+            border-color: #e85d04;
+            box-shadow: 0 0 0 0.2rem rgba(232, 93, 4, 0.2);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast-custom {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-left: 5px solid #198754;
+            min-width: 280px;
+        }
+
+        .toast-error {
+            border-left-color: #dc3545;
+        }
+
+        .icon-temp { color: #e85d04; }
+        .icon-time { color: #0d6efd; }
+
+        .empty-state {
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+
+        .receta-habilitada {
+            border: 2px solid #198754 !important;
+            background: linear-gradient(to right, #f0fff4, #ffffff);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom navbar-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-fire me-2"></i>Horno PID
+            </span>
+            <span class="text-white-50 small d-none d-sm-inline">Recetas para la pantalla OLED</span>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+
+        <!-- Panel de recetas habilitadas -->
+        <div class="panel-habilitadas p-4 mb-4 fade-in">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <div class="text-muted small mb-1">RECETAS HABILITADAS PARA LA OLED</div>
+                    <h4 class="mb-0 fw-bold" id="titulo-habilitadas">Ninguna receta habilitada</h4>
+                </div>
+                <span class="badge bg-secondary" id="contador-habilitadas">0</span>
+            </div>
+            <div id="lista-habilitadas" class="d-flex flex-wrap gap-2">
+                <!-- Se llenan dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="card mb-4 fade-in">
+            <div class="card-header py-3" style="background: linear-gradient(90deg, #e85d04, #f48c06); color: white; border-radius: 18px 18px 0 0;">
+                <i class="bi bi-plus-circle me-2"></i>
+                <span id="form-titulo">Nueva Receta</span>
+            </div>
+            <div class="card-body p-4">
+                <form id="form-receta">
+                    <input type="hidden" id="receta-id">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Nombre de la receta</label>
+                            <input type="text" class="form-control form-control-lg" id="nombre" required placeholder="Ej: Pan francés">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-clock icon-time me-1"></i> Tiempo (min)
+                            </label>
+                            <input type="number" class="form-control form-control-lg" id="tiempo" required min="1" placeholder="45">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-thermometer-half icon-temp me-1"></i> Temperatura (°C)
+                            </label>
+                            <input type="number" class="form-control form-control-lg" id="temperatura" required min="50" max="300" placeholder="180">
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary-custom btn-lg w-100">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de todas las recetas -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0 fw-bold">Todas las recetas</h4>
+            <button class="btn btn-outline-secondary btn-sm" onclick="cargarRecetas()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+            </button>
+        </div>
+
+        <div id="lista-recetas" class="row g-4"></div>
+    </div>
+
+    <!-- Toasts -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = "http://127.0.0.1:8000/recetas";
+
+        document.addEventListener("DOMContentLoaded", cargarRecetas);
+
+        function mostrarToast(mensaje, tipo = "success") {
+            const contenedor = document.getElementById("toast-container");
+            const id = "toast-" + Date.now();
+            const icono = tipo === "success" ? "bi-check-circle-fill text-success" : "bi-exclamation-triangle-fill text-danger";
+            const borde = tipo === "success" ? "" : "toast-error";
+
+            const toast = document.createElement("div");
+            toast.className = `toast-custom ${borde} p-3 mb-2 fade-in`;
+            toast.id = id;
+            toast.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi ${icono} fs-5"></i>
+                    <div class="flex-grow-1">${mensaje}</div>
+                    <button class="btn-close btn-sm" onclick="document.getElementById('${id}').remove()"></button>
+                </div>
+            `;
+            contenedor.appendChild(toast);
+            setTimeout(() => document.getElementById(id)?.remove(), 3500);
+        }
+
+        document.getElementById("form-receta").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const id = document.getElementById("receta-id").value;
+            const datos = {
+                nombre: document.getElementById("nombre").value,
+                tiempo_horneado: parseInt(document.getElementById("tiempo").value),
+                temperatura: parseFloat(document.getElementById("temperatura").value)
+            };
+
+            try {
+                const url = id ? `${API_URL}/${id}` : API_URL + "/";
+                const method = id ? "PUT" : "POST";
+                const respuesta = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datos)
+                });
+
+                if (respuesta.ok) {
+                    mostrarToast(id ? "Receta actualizada" : "Receta creada");
+                    limpiarFormulario();
+                    cargarRecetas();
+                } else {
+                    mostrarToast("Error al guardar", "error");
+                }
+            } catch (error) {
+                mostrarToast("No se pudo conectar con el servidor", "error");
+            }
+        });
+
+        async function cargarRecetas() {
+            try {
+                const respuesta = await fetch(API_URL + "/");
+                const recetas = await respuesta.json();
+
+                // Panel de habilitadas
+                const habilitadas = recetas.filter(r => r.habilitada);
+                document.getElementById("contador-habilitadas").textContent = habilitadas.length;
+                document.getElementById("titulo-habilitadas").textContent = 
+                    habilitadas.length === 0 ? "Ninguna receta habilitada" : 
+                    habilitadas.length === 1 ? "1 receta habilitada" : 
+                    `${habilitadas.length} recetas habilitadas`;
+
+                const contHabilitadas = document.getElementById("lista-habilitadas");
+                contHabilitadas.innerHTML = habilitadas.length === 0 
+                    ? `<span class="text-muted">Habilita recetas para que aparezcan en la pantalla OLED</span>`
+                    : habilitadas.map(r => `
+                        <span class="badge bg-success p-2">
+                            ${r.nombre} (${r.tiempo_horneado} min / ${r.temperatura}°C)
+                        </span>
+                    `).join("");
+
+                // Lista completa
+                const contenedor = document.getElementById("lista-recetas");
+                contenedor.innerHTML = "";
+
+                if (recetas.length === 0) {
+                    contenedor.innerHTML = `
+                        <div class="col-12">
+                            <div class="card empty-state text-center">
+                                <i class="bi bi-journal-x" style="font-size: 3rem;"></i>
+                                <p class="mt-3 mb-0">No hay recetas todavía.<br>¡Crea la primera!</p>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                recetas.forEach((receta, index) => {
+                    const card = document.createElement("div");
+                    card.className = "col-md-6 col-lg-4 fade-in";
+                    card.style.animationDelay = `${index * 0.05}s`;
+                    card.innerHTML = `
+                        <div class="card h-100 ${receta.habilitada ? 'receta-habilitada' : ''}">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0 fw-bold">${receta.nombre}</h5>
+                                    ${receta.habilitada ? '<span class="badge badge-habilitada">En OLED</span>' : ''}
+                                </div>
+                                <div class="d-flex gap-3 mb-3 text-muted">
+                                    <span><i class="bi bi-clock icon-time me-1"></i> ${receta.tiempo_horneado} min</span>
+                                    <span><i class="bi bi-thermometer-half icon-temp me-1"></i> ${receta.temperatura} °C</span>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editarReceta(${receta.id}, '${receta.nombre.replace(/'/g, "\\'")}', ${receta.tiempo_horneado}, ${receta.temperatura})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarReceta(${receta.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <button class="btn btn-sm ${receta.habilitada ? 'btn-warning' : 'btn-success'} ms-auto" 
+                                            onclick="toggleHabilitada(${receta.id})">
+                                        <i class="bi ${receta.habilitada ? 'bi-eye-slash' : 'bi-eye'}"></i>
+                                        ${receta.habilitada ? 'Quitar de OLED' : 'Habilitar en OLED'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.appendChild(card);
+                });
+            } catch (error) {
+                document.getElementById("lista-recetas").innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            Error al cargar las recetas. ¿Está corriendo la API?
+                        </div>
+                    </div>`;
+            }
+        }
+
+        function editarReceta(id, nombre, tiempo, temperatura) {
+            document.getElementById("receta-id").value = id;
+            document.getElementById("nombre").value = nombre;
+            document.getElementById("tiempo").value = tiempo;
+            document.getElementById("temperatura").value = temperatura;
+            document.getElementById("form-titulo").textContent = "Editar Receta";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function limpiarFormulario() {
+            document.getElementById("form-receta").reset();
+            document.getElementById("receta-id").value = "";
+            document.getElementById("form-titulo").textContent = "Nueva Receta";
+        }
+
+        async function eliminarReceta(id) {
+            if (!confirm("¿Seguro que quieres eliminar esta receta?")) return;
+            try {
+                const respuesta = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+                if (respuesta.ok) {
+                    mostrarToast("Receta eliminada");
+                    cargarRecetas();
+                } else {
+                    mostrarToast("Error al eliminar", "error");
+                }
+            } catch (error) {
+                mostrarToast("Error de conexión", "error");
+            }
+        }
+
+        async function toggleHabilitada(id) {
+            try {
+                const respuesta = await fetch(`${API_URL}/${id}/toggle`, { method: "POST" });
+                if (respuesta.ok) {
+                    const data = await respuesta.json();
+                    mostrarToast(data.habilitada ? "Receta habilitada para la OLED" : "Receta quitada de la OLED");
+                    cargarRecetas();
+                } else {
+                    mostrarToast("Error al cambiar estado", "error");
+                }
+            } catch (error) {
+                mostrarToast("Error de conexión", "error");
+            }
+        }
+    </script>
+</body>
+</html>

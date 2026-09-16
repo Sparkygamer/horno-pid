@@ -9,6 +9,6 @@ class Receta(Base):
     nombre = Column(String(100), nullable=False)
     tiempo_horneado = Column(Integer, nullable=False)      # minutos
     temperatura = Column(Float, nullable=False)            # grados °C
-    activa = Column(Boolean, default=False)
+    habilitada = Column(Boolean, default=False)            # si aparece en la OLED
     creado_en = Column(DateTime(timezone=True), server_default=func.now())
     actualizado_en = Column(DateTime(timezone=True), onupdate=func.now())

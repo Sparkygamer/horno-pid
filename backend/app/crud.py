@@ -7,8 +7,8 @@ def get_recetas(db: Session, skip: int = 0, limit: int = 100):
 def get_receta(db: Session, receta_id: int):
     return db.query(models.Receta).filter(models.Receta.id == receta_id).first()
 
-def get_receta_activa(db: Session):
-    return db.query(models.Receta).filter(models.Receta.activa == True).first()
+def get_recetas_habilitadas(db: Session):
+    return db.query(models.Receta).filter(models.Receta.habilitada == True).all()
 
 def create_receta(db: Session, receta: schemas.RecetaCreate):
     db_receta = models.Receta(**receta.model_dump())
@@ -38,14 +38,12 @@ def delete_receta(db: Session, receta_id: int):
     db.commit()
     return db_receta
 
-def activar_receta(db: Session, receta_id: int):
-    # Desactivar todas las recetas
-    db.query(models.Receta).update({models.Receta.activa: False})
-    
-    # Activar la receta seleccionada
+def toggle_habilitada(db: Session, receta_id: int):
     db_receta = get_receta(db, receta_id)
-    if db_receta:
-        db_receta.activa = True
-        db.commit()
-        db.refresh(db_receta)
+    if not db_receta:
+        return None
+    
+    db_receta.habilitada = not db_receta.habilitada
+    db.commit()
+    db.refresh(db_receta)
     return db_receta

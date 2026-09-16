@@ -14,11 +14,11 @@ class RecetaUpdate(BaseModel):
     nombre: Optional[str] = None
     tiempo_horneado: Optional[int] = None
     temperatura: Optional[float] = None
-    activa: Optional[bool] = None
+    habilitada: Optional[bool] = None
 
 class Receta(RecetaBase):
     id: int
-    activa: bool
+    habilitada: bool
     creado_en: Optional[datetime] = None
     actualizado_en: Optional[datetime] = None
 

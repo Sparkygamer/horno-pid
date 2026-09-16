@@ -11,12 +11,10 @@ router = APIRouter(prefix="/recetas", tags=["Recetas"])
 def listar_recetas(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_recetas(db, skip=skip, limit=limit)
 
-@router.get("/activa", response_model=schemas.Receta)
-def obtener_receta_activa(db: Session = Depends(get_db)):
-    receta = crud.get_receta_activa(db)
-    if not receta:
-        raise HTTPException(status_code=404, detail="No hay receta activa")
-    return receta
+@router.get("/habilitadas", response_model=List[schemas.Receta])
+def listar_recetas_habilitadas(db: Session = Depends(get_db)):
+    """Endpoint para la ESP32 / OLED: solo devuelve las recetas habilitadas"""
+    return crud.get_recetas_habilitadas(db)
 
 @router.get("/{receta_id}", response_model=schemas.Receta)
 def obtener_receta(receta_id: int, db: Session = Depends(get_db)):
@@ -43,9 +41,10 @@ def eliminar_receta(receta_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Receta no encontrada")
     return {"mensaje": "Receta eliminada correctamente"}
 
-@router.post("/{receta_id}/activar", response_model=schemas.Receta)
-def activar_receta(receta_id: int, db: Session = Depends(get_db)):
-    db_receta = crud.activar_receta(db, receta_id)
+@router.post("/{receta_id}/toggle", response_model=schemas.Receta)
+def toggle_habilitada(receta_id: int, db: Session = Depends(get_db)):
+    """Habilita o deshabilita una receta (para que aparezca o no en la OLED)"""
+    db_receta = crud.toggle_habilitada(db, receta_id)
     if not db_receta:
         raise HTTPException(status_code=404, detail="Receta no encontrada")
     return db_receta
