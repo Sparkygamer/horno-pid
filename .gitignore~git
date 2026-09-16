@@ -1,1 +1,0 @@
-.venv/ rm -r --cached backend/app/__pycache__
