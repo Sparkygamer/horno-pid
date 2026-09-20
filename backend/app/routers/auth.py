@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
-from ..security import hashear_password, verificar_password, crear_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from ..security import hashear_password, verificar_password, crear_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
@@ -41,7 +41,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     # Crear token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = crear_token(
+    access_token = crear_access_token(          # ← aquí estaba el error
         data={"sub": usuario.email},
         expires_delta=access_token_expires
     )
