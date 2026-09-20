@@ -3,168 +3,419 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horno PID - Control de Recetas</title>
+    <title>Horno PID</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #e85d04;
-            --primary-dark: #d00000;
+            --naranja: #e85d04;
+            --naranja-oscuro: #d00000;
+            --naranja-claro: #f48c06;
+            --crema: #fff8f0;
+            --verde: #2d6a4f;
         }
+
+        * { font-family: 'Outfit', system-ui, sans-serif; }
 
         body {
-            background: linear-gradient(160deg, #fff8f5 0%, #f1f3f5 100%);
+            background: 
+                radial-gradient(ellipse at 15% 15%, rgba(232, 93, 4, 0.09) 0%, transparent 45%),
+                radial-gradient(ellipse at 85% 85%, rgba(244, 140, 6, 0.07) 0%, transparent 45%),
+                linear-gradient(160deg, #fffaf5 0%, #f5f0eb 100%);
             min-height: 100vh;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #2d2a26;
+            overflow-x: hidden;
         }
 
+        /* Navbar */
         .navbar-custom {
-            background: linear-gradient(90deg, #e85d04, #d00000);
-            box-shadow: 0 4px 15px rgba(232, 93, 4, 0.3);
+            background: linear-gradient(135deg, #e85d04 0%, #d00000 100%);
+            box-shadow: 0 8px 30px rgba(232, 93, 4, 0.35);
+            padding: 0.9rem 0;
+            animation: slideDown 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            font-size: 1.4rem;
         }
 
-        .card {
-            border: none;
-            border-radius: 18px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        /* Auth */
+        .auth-container {
+            max-width: 440px;
+            margin: 70px auto;
+        }
+        .auth-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03);
+            overflow: hidden;
+            animation: scaleIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.92) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .auth-header {
+            background: linear-gradient(135deg, #e85d04, #d00000);
+            padding: 2.2rem 2rem 1.8rem;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        .auth-header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0; right: 0;
+            height: 40px;
+            background: white;
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        }
+        .auth-icon {
+            width: 70px; height: 70px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            backdrop-filter: blur(4px);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 12px;
+            font-weight: 500;
+            color: #6c757d;
+            padding: 0.6rem 1rem;
             transition: all 0.3s ease;
         }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #e85d04, #d00000);
+            color: white;
+            box-shadow: 0 4px 15px rgba(232, 93, 4, 0.35);
+            transform: scale(1.03);
         }
 
+        .form-control {
+            border-radius: 12px;
+            border: 1.5px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.25s ease;
+        }
+        .form-control:focus {
+            border-color: var(--naranja);
+            box-shadow: 0 0 0 4px rgba(232, 93, 4, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #e85d04, #d00000);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 0.8rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(232, 93, 4, 0.3);
+        }
+        .btn-primary-custom::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+            transition: left 0.5s ease;
+            pointer-events: none;
+        }
+        .btn-primary-custom:hover::before {
+            left: 100%;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(232, 93, 4, 0.45);
+        }
+        .btn-primary-custom:active {
+            transform: translateY(-1px);
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(232,93,4,0.03), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none; /* ← Importante: permite hacer clic en los botones */
+        }
+        .card:hover {
+            transform: translateY(-8px) scale(1.015);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+        }
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        /* Panel OLED */
         .panel-habilitadas {
             background: linear-gradient(135deg, #fff5f0 0%, #ffffff 100%);
             border: 2px solid #e85d04;
-            border-radius: 20px;
-            overflow: hidden;
+            border-radius: 22px;
             position: relative;
+            overflow: hidden;
+            animation: glowPulse 4s ease-in-out infinite;
         }
-
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(232, 93, 4, 0.15); }
+            50% { box-shadow: 0 0 0 12px rgba(232, 93, 4, 0); }
+        }
         .panel-habilitadas::before {
             content: '';
             position: absolute;
             top: 0; left: 0;
-            width: 6px; height: 100%;
+            width: 7px; height: 100%;
             background: linear-gradient(to bottom, #e85d04, #d00000);
+            pointer-events: none;
         }
-
-        .badge-habilitada {
-            background: #198754;
-            font-size: 0.75rem;
-            padding: 0.4em 0.8em;
-        }
-
-        .btn-primary-custom {
-            background: linear-gradient(90deg, #e85d04, #d00000);
-            border: none;
-            font-weight: 500;
-        }
-
-        .btn-primary-custom:hover {
-            background: linear-gradient(90deg, #d00000, #9d0208);
-        }
-
-        .form-control:focus {
-            border-color: #e85d04;
-            box-shadow: 0 0 0 0.2rem rgba(232, 93, 4, 0.2);
-        }
-
-        .fade-in {
-            animation: fadeIn 0.4s ease forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        .toast-custom {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            border-left: 5px solid #198754;
-            min-width: 280px;
-        }
-
-        .toast-error {
-            border-left-color: #dc3545;
-        }
-
-        .icon-temp { color: #e85d04; }
-        .icon-time { color: #0d6efd; }
-
-        .empty-state {
-            padding: 3rem 1rem;
-            color: #6c757d;
+        .panel-habilitadas::after {
+            content: '🔥';
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 4.5rem;
+            opacity: 0.08;
+            animation: float 4s ease-in-out infinite;
+            pointer-events: none; /* ← Importante */
         }
 
         .receta-habilitada {
-            border: 2px solid #198754 !important;
-            background: linear-gradient(to right, #f0fff4, #ffffff);
+            border: 2px solid #2d6a4f !important;
+            background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+            animation: borderGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes borderGlow {
+            from { box-shadow: 0 0 0 0 rgba(45, 106, 79, 0.2); }
+            to { box-shadow: 0 0 0 6px rgba(45, 106, 79, 0); }
+        }
+
+        .badge-habilitada {
+            background: linear-gradient(135deg, #2d6a4f, #40916c);
+            font-size: 0.7rem;
+            padding: 0.35em 0.75em;
+            border-radius: 50px;
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .badge-oled {
+            background: linear-gradient(135deg, #e85d04, #f48c06);
+            color: white;
+            border-radius: 50px;
+            padding: 0.4em 0.9em;
+            font-weight: 500;
+            animation: pulseSoft 2.5s ease-in-out infinite;
+        }
+        @keyframes pulseSoft {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Entrada escalonada */
+        .fade-in {
+            opacity: 0;
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+        .toast-custom {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.14);
+            border-left: 5px solid #2d6a4f;
+            min-width: 300px;
+            animation: toastIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .toast-error { border-left-color: #dc3545; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(50px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        .icon-temp { color: #e85d04; }
+        .icon-time { color: #3a86ff; }
+        .hidden { display: none !important; }
+
+        .empty-state {
+            padding: 4rem 1.5rem;
+            text-align: center;
+            color: #8a857f;
+        }
+        .empty-state i {
+            font-size: 3.5rem;
+            opacity: 0.35;
+            animation: float 3.5s ease-in-out infinite;
+        }
+
+        .btn-action {
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 2;
+        }
+        .btn-action:hover {
+            transform: scale(1.12);
+        }
+        .btn-action:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-custom navbar-dark mb-4">
+    <nav class="navbar navbar-custom navbar-dark">
         <div class="container">
-            <span class="navbar-brand mb-0 h1">
+            <span class="navbar-brand mb-0">
                 <i class="bi bi-fire me-2"></i>Horno PID
             </span>
-            <span class="text-white-50 small d-none d-sm-inline">Recetas para la pantalla OLED</span>
+            <div id="nav-user" class="d-none align-items-center gap-3 text-white">
+                <span class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person-circle"></i>
+                    <span id="nombre-usuario" class="fw-medium"></span>
+                </span>
+                <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="cerrarSesion()">
+                    <i class="bi bi-box-arrow-right me-1"></i> Salir
+                </button>
+            </div>
         </div>
     </nav>
 
-    <div class="container pb-5">
-
-        <!-- Panel de recetas habilitadas -->
-        <div class="panel-habilitadas p-4 mb-4 fade-in">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <div class="text-muted small mb-1">RECETAS HABILITADAS PARA LA OLED</div>
-                    <h4 class="mb-0 fw-bold" id="titulo-habilitadas">Ninguna receta habilitada</h4>
+    <!-- AUTH -->
+    <div id="pantalla-auth" class="container">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-icon">
+                        <i class="bi bi-fire"></i>
+                    </div>
+                    <h3 class="mb-1 fw-bold">Horno PID</h3>
+                    <p class="mb-0 opacity-75 small">Tu horno inteligente</p>
                 </div>
-                <span class="badge bg-secondary" id="contador-habilitadas">0</span>
-            </div>
-            <div id="lista-habilitadas" class="d-flex flex-wrap gap-2">
-                <!-- Se llenan dinámicamente -->
+
+                <div class="p-4 pt-2">
+                    <ul class="nav nav-pills nav-fill mb-4 gap-2">
+                        <li class="nav-item">
+                            <button class="nav-link active w-100" id="tab-login" onclick="mostrarLogin()">Iniciar sesión</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link w-100" id="tab-registro" onclick="mostrarRegistro()">Registrarse</button>
+                        </li>
+                    </ul>
+
+                    <form id="form-login">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Email</label>
+                            <input type="email" class="form-control form-control-lg" id="login-email" required placeholder="tu@email.com">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Contraseña</label>
+                            <input type="password" class="form-control form-control-lg" id="login-password" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom btn-lg w-100">
+                            Entrar al horno
+                        </button>
+                    </form>
+
+                    <form id="form-registro" class="hidden">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Nombre</label>
+                            <input type="text" class="form-control form-control-lg" id="reg-nombre" required placeholder="Tu nombre">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Email</label>
+                            <input type="email" class="form-control form-control-lg" id="reg-email" required placeholder="tu@email.com">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Contraseña</label>
+                            <input type="password" class="form-control form-control-lg" id="reg-password" required placeholder="Mínimo 6 caracteres" minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom btn-lg w-100">
+                            Crear mi cuenta
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Formulario -->
+    <!-- APP -->
+    <div id="pantalla-app" class="container pb-5 hidden">
+        <div class="panel-habilitadas p-4 mb-4 mt-4 fade-in">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="text-muted small mb-1 fw-medium">PANTALLA OLED DEL HORNO</div>
+                    <h4 class="mb-0 fw-bold" id="titulo-habilitadas">Ninguna receta habilitada</h4>
+                </div>
+                <span class="badge-oled" id="contador-habilitadas">0 recetas</span>
+            </div>
+            <div id="lista-habilitadas" class="d-flex flex-wrap gap-2 mt-2"></div>
+        </div>
+
         <div class="card mb-4 fade-in">
-            <div class="card-header py-3" style="background: linear-gradient(90deg, #e85d04, #f48c06); color: white; border-radius: 18px 18px 0 0;">
+            <div class="card-header py-3 border-0" style="background: linear-gradient(135deg, #e85d04, #f48c06); color: white; border-radius: 20px 20px 0 0;">
                 <i class="bi bi-plus-circle me-2"></i>
-                <span id="form-titulo">Nueva Receta</span>
+                <span id="form-titulo" class="fw-semibold">Nueva Receta</span>
             </div>
             <div class="card-body p-4">
                 <form id="form-receta">
                     <input type="hidden" id="receta-id">
                     <div class="row g-3">
                         <div class="col-md-5">
-                            <label class="form-label fw-semibold">Nombre de la receta</label>
-                            <input type="text" class="form-control form-control-lg" id="nombre" required placeholder="Ej: Pan francés">
+                            <label class="form-label fw-medium">Nombre de la receta</label>
+                            <input type="text" class="form-control form-control-lg" id="nombre" required placeholder="Ej: Pan de masa madre">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-clock icon-time me-1"></i> Tiempo (min)
-                            </label>
+                            <label class="form-label fw-medium"><i class="bi bi-clock icon-time me-1"></i> Tiempo (min)</label>
                             <input type="number" class="form-control form-control-lg" id="tiempo" required min="1" placeholder="45">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-thermometer-half icon-temp me-1"></i> Temperatura (°C)
-                            </label>
+                            <label class="form-label fw-medium"><i class="bi bi-thermometer-half icon-temp me-1"></i> Temperatura (°C)</label>
                             <input type="number" class="form-control form-control-lg" id="temperatura" required min="50" max="300" placeholder="180">
                         </div>
                         <div class="col-md-1 d-flex align-items-end">
@@ -177,47 +428,143 @@
             </div>
         </div>
 
-        <!-- Lista de todas las recetas -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0 fw-bold">Todas las recetas</h4>
-            <button class="btn btn-outline-secondary btn-sm" onclick="cargarRecetas()">
+            <h4 class="mb-0 fw-bold">Mis recetas</h4>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="cargarRecetas()">
                 <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
             </button>
         </div>
-
         <div id="lista-recetas" class="row g-4"></div>
     </div>
 
-    <!-- Toasts -->
     <div class="toast-container" id="toast-container"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API_URL = "http://127.0.0.1:8000/recetas";
+        const API_URL = "http://192.168.1.2";
+        let token = localStorage.getItem("token");
+        let usuario = JSON.parse(localStorage.getItem("usuario") || "null");
 
-        document.addEventListener("DOMContentLoaded", cargarRecetas);
+        document.addEventListener("DOMContentLoaded", () => {
+            if (token && usuario) mostrarApp();
+            else mostrarAuth();
+        });
+
+        function mostrarLogin() {
+            document.getElementById("form-login").classList.remove("hidden");
+            document.getElementById("form-registro").classList.add("hidden");
+            document.getElementById("tab-login").classList.add("active");
+            document.getElementById("tab-registro").classList.remove("active");
+        }
+
+        function mostrarRegistro() {
+            document.getElementById("form-login").classList.add("hidden");
+            document.getElementById("form-registro").classList.remove("hidden");
+            document.getElementById("tab-login").classList.remove("active");
+            document.getElementById("tab-registro").classList.add("active");
+        }
+
+        function mostrarAuth() {
+            document.getElementById("pantalla-auth").classList.remove("hidden");
+            document.getElementById("pantalla-app").classList.add("hidden");
+            document.getElementById("nav-user").classList.add("d-none");
+            document.getElementById("nav-user").classList.remove("d-flex");
+        }
+
+        function mostrarApp() {
+            document.getElementById("pantalla-auth").classList.add("hidden");
+            document.getElementById("pantalla-app").classList.remove("hidden");
+            document.getElementById("nav-user").classList.remove("d-none");
+            document.getElementById("nav-user").classList.add("d-flex");
+            document.getElementById("nombre-usuario").textContent = usuario.nombre;
+            cargarRecetas();
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("usuario");
+            token = null;
+            usuario = null;
+            mostrarAuth();
+            mostrarToast("Sesión cerrada");
+        }
+
+        document.getElementById("form-login").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("username", document.getElementById("login-email").value);
+            formData.append("password", document.getElementById("login-password").value);
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, { method: "POST", body: formData });
+                const data = await res.json();
+                if (res.ok) {
+                    token = data.access_token;
+                    usuario = data.usuario;
+                    localStorage.setItem("token", token);
+                    localStorage.setItem("usuario", JSON.stringify(usuario));
+                    mostrarToast("¡Bienvenido " + usuario.nombre + "!");
+                    mostrarApp();
+                } else {
+                    mostrarToast(data.detail || "Error al iniciar sesión", "error");
+                }
+            } catch (err) {
+                mostrarToast("No se pudo conectar con el servidor", "error");
+            }
+        });
+
+        document.getElementById("form-registro").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const datos = {
+                nombre: document.getElementById("reg-nombre").value,
+                email: document.getElementById("reg-email").value,
+                password: document.getElementById("reg-password").value
+            };
+            try {
+                const res = await fetch(`${API_URL}/auth/registro`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datos)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    mostrarToast("Cuenta creada. Ahora inicia sesión");
+                    mostrarLogin();
+                    document.getElementById("login-email").value = datos.email;
+                } else {
+                    mostrarToast(data.detail || "Error al registrarse", "error");
+                }
+            } catch (err) {
+                mostrarToast("No se pudo conectar con el servidor", "error");
+            }
+        });
+
+        function authHeaders() {
+            return {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            };
+        }
 
         function mostrarToast(mensaje, tipo = "success") {
             const contenedor = document.getElementById("toast-container");
             const id = "toast-" + Date.now();
             const icono = tipo === "success" ? "bi-check-circle-fill text-success" : "bi-exclamation-triangle-fill text-danger";
             const borde = tipo === "success" ? "" : "toast-error";
-
             const toast = document.createElement("div");
-            toast.className = `toast-custom ${borde} p-3 mb-2 fade-in`;
+            toast.className = `toast-custom ${borde} p-3 mb-2`;
             toast.id = id;
             toast.innerHTML = `
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi ${icono} fs-5"></i>
                     <div class="flex-grow-1">${mensaje}</div>
                     <button class="btn-close btn-sm" onclick="document.getElementById('${id}').remove()"></button>
-                </div>
-            `;
+                </div>`;
             contenedor.appendChild(toast);
             setTimeout(() => document.getElementById(id)?.remove(), 3500);
         }
 
-        document.getElementById("form-receta").addEventListener("submit", async function(e) {
+        document.getElementById("form-receta").addEventListener("submit", async (e) => {
             e.preventDefault();
             const id = document.getElementById("receta-id").value;
             const datos = {
@@ -225,105 +572,101 @@
                 tiempo_horneado: parseInt(document.getElementById("tiempo").value),
                 temperatura: parseFloat(document.getElementById("temperatura").value)
             };
-
             try {
-                const url = id ? `${API_URL}/${id}` : API_URL + "/";
+                const url = id ? `${API_URL}/recetas/${id}` : `${API_URL}/recetas/`;
                 const method = id ? "PUT" : "POST";
-                const respuesta = await fetch(url, {
+                const res = await fetch(url, {
                     method,
-                    headers: { "Content-Type": "application/json" },
+                    headers: authHeaders(),
                     body: JSON.stringify(datos)
                 });
-
-                if (respuesta.ok) {
+                if (res.ok) {
                     mostrarToast(id ? "Receta actualizada" : "Receta creada");
                     limpiarFormulario();
                     cargarRecetas();
                 } else {
                     mostrarToast("Error al guardar", "error");
                 }
-            } catch (error) {
-                mostrarToast("No se pudo conectar con el servidor", "error");
+            } catch (err) {
+                mostrarToast("Error de conexión", "error");
             }
         });
 
         async function cargarRecetas() {
             try {
-                const respuesta = await fetch(API_URL + "/");
-                const recetas = await respuesta.json();
+                const res = await fetch(`${API_URL}/recetas/`, { headers: authHeaders() });
+                if (res.status === 401) { cerrarSesion(); return; }
+                const recetas = await res.json();
 
-                // Panel de habilitadas
                 const habilitadas = recetas.filter(r => r.habilitada);
-                document.getElementById("contador-habilitadas").textContent = habilitadas.length;
+                document.getElementById("contador-habilitadas").textContent = 
+                    habilitadas.length === 0 ? "0 recetas" : 
+                    habilitadas.length === 1 ? "1 receta" : `${habilitadas.length} recetas`;
                 document.getElementById("titulo-habilitadas").textContent = 
                     habilitadas.length === 0 ? "Ninguna receta habilitada" : 
-                    habilitadas.length === 1 ? "1 receta habilitada" : 
-                    `${habilitadas.length} recetas habilitadas`;
+                    habilitadas.length === 1 ? "1 receta lista para la OLED" : 
+                    `${habilitadas.length} recetas listas para la OLED`;
 
-                const contHabilitadas = document.getElementById("lista-habilitadas");
-                contHabilitadas.innerHTML = habilitadas.length === 0 
-                    ? `<span class="text-muted">Habilita recetas para que aparezcan en la pantalla OLED</span>`
+                document.getElementById("lista-habilitadas").innerHTML = habilitadas.length === 0
+                    ? `<span class="text-muted">Habilita recetas para que aparezcan en la pantalla del horno</span>`
                     : habilitadas.map(r => `
-                        <span class="badge bg-success p-2">
-                            ${r.nombre} (${r.tiempo_horneado} min / ${r.temperatura}°C)
-                        </span>
-                    `).join("");
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 p-2 rounded-pill">
+                            ${r.nombre} · ${r.tiempo_horneado}min · ${r.temperatura}°C
+                        </span>`).join("");
 
-                // Lista completa
                 const contenedor = document.getElementById("lista-recetas");
                 contenedor.innerHTML = "";
 
                 if (recetas.length === 0) {
                     contenedor.innerHTML = `
                         <div class="col-12">
-                            <div class="card empty-state text-center">
-                                <i class="bi bi-journal-x" style="font-size: 3rem;"></i>
-                                <p class="mt-3 mb-0">No hay recetas todavía.<br>¡Crea la primera!</p>
+                            <div class="card empty-state">
+                                <i class="bi bi-journal-x"></i>
+                                <p class="mt-3 mb-0 fs-5">No tienes recetas todavía</p>
+                                <p class="small">Crea tu primera receta para empezar</p>
                             </div>
                         </div>`;
                     return;
                 }
 
-                recetas.forEach((receta, index) => {
+                recetas.forEach((receta, i) => {
                     const card = document.createElement("div");
                     card.className = "col-md-6 col-lg-4 fade-in";
-                    card.style.animationDelay = `${index * 0.05}s`;
+                    card.style.animationDelay = `${i * 0.07}s`;
                     card.innerHTML = `
                         <div class="card h-100 ${receta.habilitada ? 'receta-habilitada' : ''}">
                             <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
                                     <h5 class="card-title mb-0 fw-bold">${receta.nombre}</h5>
-                                    ${receta.habilitada ? '<span class="badge badge-habilitada">En OLED</span>' : ''}
+                                    ${receta.habilitada ? '<span class="badge-habilitada">En OLED</span>' : ''}
                                 </div>
-                                <div class="d-flex gap-3 mb-3 text-muted">
-                                    <span><i class="bi bi-clock icon-time me-1"></i> ${receta.tiempo_horneado} min</span>
-                                    <span><i class="bi bi-thermometer-half icon-temp me-1"></i> ${receta.temperatura} °C</span>
+                                <div class="d-flex gap-3 mb-4 text-muted">
+                                    <span class="d-flex align-items-center gap-1">
+                                        <i class="bi bi-clock icon-time"></i> ${receta.tiempo_horneado} min
+                                    </span>
+                                    <span class="d-flex align-items-center gap-1">
+                                        <i class="bi bi-thermometer-half icon-temp"></i> ${receta.temperatura} °C
+                                    </span>
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="editarReceta(${receta.id}, '${receta.nombre.replace(/'/g, "\\'")}', ${receta.tiempo_horneado}, ${receta.temperatura})">
+                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="editarReceta(${receta.id}, '${receta.nombre.replace(/'/g, "\\'")}', ${receta.tiempo_horneado}, ${receta.temperatura})">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarReceta(${receta.id})">
+                                    <button class="btn btn-sm btn-outline-danger btn-action" onclick="eliminarReceta(${receta.id})">
                                         <i class="bi bi-trash"></i>
                                     </button>
-                                    <button class="btn btn-sm ${receta.habilitada ? 'btn-warning' : 'btn-success'} ms-auto" 
+                                    <button class="btn btn-sm btn-action ${receta.habilitada ? 'btn-warning' : 'btn-success'} ms-auto" 
                                             onclick="toggleHabilitada(${receta.id})">
                                         <i class="bi ${receta.habilitada ? 'bi-eye-slash' : 'bi-eye'}"></i>
-                                        ${receta.habilitada ? 'Quitar de OLED' : 'Habilitar en OLED'}
+                                        ${receta.habilitada ? 'Quitar' : 'Habilitar'}
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                     contenedor.appendChild(card);
                 });
-            } catch (error) {
-                document.getElementById("lista-recetas").innerHTML = `
-                    <div class="col-12">
-                        <div class="alert alert-danger">
-                            Error al cargar las recetas. ¿Está corriendo la API?
-                        </div>
-                    </div>`;
+            } catch (err) {
+                mostrarToast("Error al cargar recetas", "error");
             }
         }
 
@@ -343,31 +686,37 @@
         }
 
         async function eliminarReceta(id) {
-            if (!confirm("¿Seguro que quieres eliminar esta receta?")) return;
+            if (!confirm("¿Eliminar esta receta?")) return;
             try {
-                const respuesta = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-                if (respuesta.ok) {
+                const res = await fetch(`${API_URL}/recetas/${id}`, {
+                    method: "DELETE",
+                    headers: authHeaders()
+                });
+                if (res.ok) {
                     mostrarToast("Receta eliminada");
                     cargarRecetas();
                 } else {
                     mostrarToast("Error al eliminar", "error");
                 }
-            } catch (error) {
+            } catch (err) {
                 mostrarToast("Error de conexión", "error");
             }
         }
 
         async function toggleHabilitada(id) {
             try {
-                const respuesta = await fetch(`${API_URL}/${id}/toggle`, { method: "POST" });
-                if (respuesta.ok) {
-                    const data = await respuesta.json();
-                    mostrarToast(data.habilitada ? "Receta habilitada para la OLED" : "Receta quitada de la OLED");
+                const res = await fetch(`${API_URL}/recetas/${id}/toggle`, {
+                    method: "POST",
+                    headers: authHeaders()
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    mostrarToast(data.habilitada ? "Habilitada para la OLED" : "Quitada de la OLED");
                     cargarRecetas();
                 } else {
                     mostrarToast("Error al cambiar estado", "error");
                 }
-            } catch (error) {
+            } catch (err) {
                 mostrarToast("Error de conexión", "error");
             }
         }
