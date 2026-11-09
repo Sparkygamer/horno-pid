@@ -1,22 +1,24 @@
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Usa PostgreSQL si existe DATABASE_URL, si no usa SQLite (para desarrollo local)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-    # Render a veces entrega postgres:// y SQLAlchemy necesita postgresql://
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
 if DATABASE_URL:
+    # Render a veces entrega postgres:// → hay que cambiarlo
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+    # Forzamos el driver psycopg2 para evitar problemas
+    if DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+
     engine = create_engine(DATABASE_URL)
 else:
-    # Desarrollo local con SQLite
-    SQLALCHEMY_DATABASE_URL = "sqlite:///./horno.db"
+    # Desarrollo local
     engine = create_engine(
-        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+        "sqlite:///./horno.db",
+        connect_args={"check_same_thread": False}
     )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
